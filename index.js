@@ -1,14 +1,15 @@
 'use strict'
 const net = require('net')
-const port = process.env.PORT
+const args = process.argv.slice(2)
+const port = args[0]
 
 const server = new net.Server()
 
 server.listen(port, () => { console.log(`Server listening at localhost:${port}`) })
 
 const redirect = {
-    host: `${process.env.host}`,
-    port: process.env.out_port
+    host: `${args[1]}`,
+    port: args[2]
 }
 console.log(redirect)
 
