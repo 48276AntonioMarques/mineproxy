@@ -3,49 +3,50 @@ const net = require('net')
 const args = process.argv.slice(2)
 const port = args[0]
 
-const server = new net.Server()
+const proxy = new net.Server()
 
-server.listen(port, () => { console.log(`Server listening at localhost:${port}`) })
-
-const redirect = {
+const targetedServer = {
     host: `${args[1]}`,
     port: args[2]
 }
-console.log(redirect)
 
-server.on('connection', (socket) => {
+console.log(`targetedServer: ${targetedServer.host}:${targetedServer.port}`)
+
+proxy.listen(port, () => { console.log(`Server listening at port: ${port}`) })
+
+proxy.on('connection', (clientSocket) => {
     console.log('A new connection has been established.')
-    const client = net.Socket()
+    const targetedSocket = net.Socket()
 
-    client.connect(redirect, () => {
+    targetedSocket.connect(targetedServer, () => {
         console.log('The connection reached origin.')
     })
 
-    socket.on('data', (chunk) => {
-        client.write(chunk)
+    clientSocket.on('data', (chunk) => {
+        targetedSocket.write(chunk)
     })
 
-    client.on('data', (chunk) => {
-        socket.write(chunk)
+    targetedSocket.on('data', (chunk) => {
+        clientSocket.write(chunk)
     })
 
-    socket.on('error', (err) => {
+    clientSocket.on('error', (err) => {
         console.log("Socket error:", err)
-        client.destroy(err)
-        client.unref()
+        targetedSocket.destroy(err)
+        targetedSocket.unref()
     })
 
-    client.on('error', (err) => {
+    targetedSocket.on('error', (err) => {
         console.log("Socket error:", err)
-        socket.destroy(err)
-        socket.unref()
+        clientSocket.destroy(err)
+        clientSocket.unref()
     })
 
-    socket.on('end', () => {
-        client.end()
+    clientSocket.on('end', () => {
+        targetedSocket.end()
     })
 
-    client.on('end', () => {
-        socket.end()
+    targetedSocket.on('end', () => {
+        clientSocket.end()
     })
 })
