@@ -28,6 +28,7 @@ proxy.on('connection', (clientSocket) => {
 
     targetedSocket.on('data', (chunk) => {
         clientSocket.write(chunk)
+        console.log("Data sent to client")
     })
 
     clientSocket.on('error', (err) => {
